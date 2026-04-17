@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prashant — Full Stack Developer</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg2: #111111;
+    --bg3: #161616;
+    --green: #00ff88;
+    --green-dim: #00ff8833;
+    --green-mid: #00ff8866;
+    --amber: #ffb830;
+    --blue: #4fc3f7;
+    --text: #e8e8e8;
+    --muted: #666;
+    --border: #222;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-display: 'Syne', sans-serif;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  .cursor {
+    width: 10px; height: 10px;
+    background: var(--green);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    width: 32px; height: 32px;
+    border: 1px solid var(--green-mid);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%,-50%);
+    transition: left 0.12s ease, top 0.12s ease, width 0.2s, height 0.2s, border-color 0.2s;
+  }
+  body:has(a:hover) .cursor-ring,
+  body:has(button:hover) .cursor-ring { width: 48px; height: 48px; border-color: var(--green); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--green); border-radius: 2px; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 4%;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  nav.scrolled { background: rgba(10,10,10,0.95); border-bottom-color: var(--border); backdrop-filter: blur(12px); }
+  .nav-logo {
+    font-family: var(--font-mono); font-size: 14px; color: var(--green);
+    text-decoration: none; letter-spacing: 0.05em;
+  }
+  .nav-logo span { color: var(--muted); }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    font-size: 12px; color: var(--muted); text-decoration: none;
+    letter-spacing: 0.08em; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--green); }
+  .nav-links a::before { content: './'; color: var(--green); opacity: 0; transition: opacity 0.2s; }
+  .nav-links a:hover::before { opacity: 1; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding: 0 4%;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at 50% 50%, black 30%, transparent 80%);
+  }
+  .hero-glow {
+    position: absolute; top: 20%; left: -10%;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(0,255,136,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-glow2 {
+    position: absolute; bottom: 10%; right: -5%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(79,195,247,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-content { position: relative; z-index: 2; max-width: 800px; }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--green); letter-spacing: 0.15em;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero-tag::before {
+    content: ''; width: 24px; height: 1px; background: var(--green);
+  }
+  .hero-name {
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 9vw, 7rem);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .hero-name .accent { color: var(--green); display: inline-block; }
+  .hero-role {
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+    font-weight: 300;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+  .hero-role .typed { color: var(--amber); }
+
+  .terminal-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    max-width: 480px;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+  .terminal-header {
+    display: flex; gap: 6px; margin-bottom: 0.8rem;
+  }
+  .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .t-dot.red { background: #ff5f57; }
+  .t-dot.yellow { background: #ffbd2e; }
+  .t-dot.green { background: #28ca41; }
+  .terminal-line { font-size: 12px; line-height: 1.8; }
+  .terminal-line .prompt { color: var(--green); }
+  .terminal-line .cmd { color: var(--text); }
+  .terminal-line .out { color: var(--muted); padding-left: 1rem; display: block; }
+  .terminal-line .out.highlight { color: var(--amber); }
+  .cursor-blink { display: inline-block; width: 8px; height: 14px; background: var(--green); vertical-align: middle; animation: blink 1s step-end infinite; }
+
+  .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; animation: fadeUp 0.6s 0.4s ease both; }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px; background: var(--green); color: #000;
+    font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+    text-decoration: none; border-radius: 6px; letter-spacing: 0.05em;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none; cursor: none;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,255,136,0.25); }
+  .btn-outline {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px; background: transparent;
+    border: 1px solid var(--border); color: var(--text);
+    font-family: var(--font-mono); font-size: 13px;
+    text-decoration: none; border-radius: 6px; letter-spacing: 0.05em;
+    transition: border-color 0.2s, color 0.2s; cursor: none;
+  }
+  .btn-outline:hover { border-color: var(--green); color: var(--green); }
+
+  /* SCROLL INDICATOR */
+  .scroll-indicator {
+    position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    font-size: 10px; letter-spacing: 0.15em; color: var(--muted);
+    animation: fadeUp 1s 0.8s ease both;
+  }
+  .scroll-line { width: 1px; height: 48px; background: linear-gradient(to bottom, var(--green), transparent); animation: scrollPulse 2s ease infinite; }
+
+  /* SECTIONS */
+  section { padding: 6rem 4%; }
+  .section-header { margin-bottom: 3rem; }
+  .section-num { font-size: 11px; color: var(--green); letter-spacing: 0.15em; margin-bottom: 0.4rem; }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 700; line-height: 1.1;
+  }
+  .section-line { width: 48px; height: 2px; background: var(--green); margin-top: 1rem; }
+
+  /* ABOUT */
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+  .about-text p { font-size: 14px; line-height: 1.9; color: #aaa; margin-bottom: 1rem; }
+  .about-text p strong { color: var(--text); }
+  .about-text p .green { color: var(--green); }
+  .about-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .stat-box { background: var(--bg2); padding: 1.5rem; }
+  .stat-box-num { font-family: var(--font-display); font-size: 2.5rem; font-weight: 800; color: var(--green); line-height: 1; margin-bottom: 4px; }
+  .stat-box-label { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; }
+  .edu-card {
+    margin-top: 1.5rem; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.2rem 1.4rem;
+  }
+  .edu-label { font-size: 10px; color: var(--green); letter-spacing: 0.15em; margin-bottom: 6px; }
+  .edu-title { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+  .edu-sub { font-size: 12px; color: var(--muted); }
+
+  /* SKILLS */
+  .skills-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+  .skill-group { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1.4rem; transition: border-color 0.3s; }
+  .skill-group:hover { border-color: var(--green-mid); }
+  .skill-group-title { font-size: 11px; color: var(--green); letter-spacing: 0.12em; margin-bottom: 1rem; }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .skill-tag {
+    font-size: 11px; padding: 5px 12px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 4px; color: var(--text); letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+  .skill-tag:hover { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+  .skill-tag.featured { border-color: var(--green-mid); color: var(--green); background: var(--green-dim); }
+
+  /* PROJECTS */
+  .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; }
+  .project-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+    position: relative;
+  }
+  .project-card:hover { border-color: var(--green-mid); transform: translateY(-4px); }
+  .project-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--green-dim) 0%, transparent 50%);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .project-card:hover::before { opacity: 1; }
+  .project-header { padding: 1.4rem 1.4rem 0; position: relative; }
+  .project-num { font-size: 10px; color: var(--muted); letter-spacing: 0.15em; margin-bottom: 8px; }
+  .project-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--green-dim); border: 1px solid var(--green-mid);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; margin-bottom: 1rem;
+  }
+  .project-title { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; margin-bottom: 6px; }
+  .project-desc { font-size: 12px; color: #888; line-height: 1.7; padding: 0 1.4rem; margin: 0.8rem 0; }
+  .project-tech { display: flex; flex-wrap: wrap; gap: 5px; padding: 0 1.4rem; }
+  .tech-pill {
+    font-size: 10px; padding: 3px 8px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 3px; color: var(--muted); letter-spacing: 0.05em;
+  }
+  .project-footer {
+    padding: 1rem 1.4rem 1.4rem;
+    display: flex; gap: 10px; margin-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .proj-link {
+    font-size: 11px; color: var(--muted); text-decoration: none;
+    display: flex; align-items: center; gap: 5px; letter-spacing: 0.08em;
+    transition: color 0.2s;
+  }
+  .proj-link:hover { color: var(--green); }
+  .proj-link svg { width: 12px; height: 12px; }
+
+  /* CONTACT */
+  .contact-wrapper {
+    max-width: 700px; margin: 0 auto; text-align: center;
+  }
+  .contact-tagline { font-size: 14px; color: var(--muted); line-height: 1.8; margin-bottom: 2.5rem; }
+  .contact-links { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+  .contact-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px; background: var(--bg2);
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: 12px; color: var(--muted); text-decoration: none;
+    letter-spacing: 0.08em; transition: all 0.2s;
+  }
+  .contact-link:hover { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem 4%;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--muted); flex-wrap: wrap; gap: 8px;
+  }
+  footer .green { color: var(--green); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  @keyframes scrollPulse { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* AVAILABILITY BADGE */
+  .availability {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--green); letter-spacing: 0.08em;
+    background: var(--green-dim); border: 1px solid var(--green-mid);
+    padding: 5px 12px; border-radius: 20px;
+    margin-bottom: 1.5rem; animation: fadeUp 0.6s 0s ease both;
+  }
+  .avail-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: blink 1.5s ease infinite; }
+
+  /* MOBILE */
+  @media (max-width: 768px) {
+    .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .nav-links { display: none; }
+    .projects-grid { grid-template-columns: 1fr; }
+    .hero-name { font-size: 3rem; }
+  }
+  .contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contact-form input,
+.contact-form textarea {
+  padding: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  outline: none;
+  border-color: var(--green);
+}
+
+#chatbox {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 320px;
+  background: #0f0f0f;
+  border: 1px solid #00ff88;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', monospace;
+  z-index: 9999;
+}
+
+#chat-header {
+  background: #00ff88;
+  color: black;
+  padding: 10px;
+  font-weight: bold;
+  text-align: center;
+}
+
+#messages {
+  height: 250px;
+  overflow-y: auto;
+  padding: 10px;
+  font-size: 12px;
+}
+
+.user-msg {
+  text-align: right;
+  margin: 6px 0;
+  color: #00ff88;
+}
+
+.bot-msg {
+  text-align: left;
+  margin: 6px 0;
+  color: #fff;
+}
+
+#chat-input {
+  display: flex;
+  border-top: 1px solid #222;
+}
+
+#chat-input input {
+  flex: 1;
+  padding: 8px;
+  background: #111;
+  border: none;
+  color: white;
+}
+
+#chat-input button {
+  background: #00ff88;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+#chat-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #00ff88;
+  color: black;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  cursor: pointer;
+  z-index: 9999;
+}
+
+#chatbox {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 320px;
+  background: #0f0f0f;
+  border: 1px solid #00ff88;
+  border-radius: 12px;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+#chat-header {
+  background: #00ff88;
+  color: black;
+  padding: 10px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+}
+
+#messages {
+  height: 250px;
+  overflow-y: auto;
+  padding: 10px;
+  font-size: 12px;
+}
+
+.user-msg {
+  text-align: right;
+  margin: 6px 0;
+  color: #00ff88;
+}
+
+.bot-msg {
+  text-align: left;
+  margin: 6px 0;
+  color: white;
+}
+
+#chat-input {
+  display: flex;
+  border-top: 1px solid #222;
+}
+
+#chat-input input {
+  flex: 1;
+  padding: 8px;
+  background: #111;
+  border: none;
+  color: white;
+}
+
+#chat-input button {
+  background: #00ff88;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#" class="nav-logo">prashant<span>.dev</span></a>
+  <ul class="nav-links">
+    <li><a href="#about">about</a></li>
+    <li><a href="#skills">skills</a></li>
+    <li><a href="#projects">projects</a></li>
+    <li><a href="#contact">contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-content">
+    <div class="availability">
+      <span class="avail-dot"></span>
+      Available for internships &amp; roles — 2026
+    </div>
+    <div class="hero-tag">FULL STACK DEVELOPER</div>
+    <h1 class="hero-name">
+      Hi, I'm<br><span class="accent">Prashant</span>
+    </h1>
+    <p class="hero-role">
+      I build things for the web — <span class="typed" id="typed-text">React interfaces</span>
+    </p>
+
+    <div class="terminal-box">
+      <div class="terminal-header">
+        <div class="t-dot red"></div>
+        <div class="t-dot yellow"></div>
+        <div class="t-dot green"></div>
+      </div>
+      <div class="terminal-line">
+        <span class="prompt">~$</span>
+        <span class="cmd"> whoami</span>
+        <span class="out">Prashant — B.Tech CSE '26, ABES Engineering College</span>
+      </div>
+      <div class="terminal-line">
+        <span class="prompt">~$</span>
+        <span class="cmd"> cat skills.json | head -3</span>
+        <span class="out highlight">[ "React", "Node.js", "MongoDB", "Express.js" ]</span>
+      </div>
+      <div class="terminal-line">
+        <span class="prompt">~$</span>
+        <span class="cmd"> git log --oneline -1</span>
+        <span class="out">a3f92c1 feat: built real-time chat app with Socket.IO</span>
+      </div>
+      <div class="terminal-line">
+        <span class="prompt">~$</span>
+        <span class="cmd"> <span class="cursor-blink"></span></span>
+      </div>
+    </div>
+
+    <div class="hero-btns">
+      <a href="#projects" class="btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        View Projects
+      </a>
+     <a href="contact.html" class="btn-outline">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+    <!-- icon path (agar tha toh rehne de) -->
+  </svg>
+  Get In Touch
+</a>
+    </div>
+  </div>
+
+  <div class="scroll-indicator">
+    <span>scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-header reveal">
+    <div class="section-num">// 01</div>
+    <h2 class="section-title">About Me</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="about-grid">
+    <div class="about-text reveal">
+      <p>
+        I'm a <strong>final-year Computer Science student</strong> at ABES Engineering College, Ghaziabad, passionate about building full-stack web applications that are fast, functional, and user-friendly.
+      </p>
+      <p>
+        My journey started with <span class="green">HTML &amp; CSS</span>, evolved through JavaScript, and now spans the entire MERN stack. I love the process of turning an idea into something real — from designing a database schema to crafting a pixel-perfect UI.
+      </p>
+      <p>
+        When I'm not coding, I'm solving DSA problems, exploring new libraries, or leading theater productions (yes, really — I was Team Lead at Samvaad Theater Group and even competed at <strong>IIT Kharagpur</strong>).
+      </p>
+      <p>
+        Currently in my <span class="green">4th year</span>, actively looking for <strong>internships</strong> and <strong>entry-level full stack / frontend roles</strong> where I can grow fast and contribute meaningfully.
+      </p>
+      <div class="edu-card">
+        <div class="edu-label">EDUCATION</div>
+        <div class="edu-title">B.Tech — Computer Science & Engineering</div>
+        <div class="edu-sub">ABES Engineering College, Ghaziabad &nbsp;·&nbsp; 2022–2026 &nbsp;·&nbsp; CGPA 7.0</div>
+      </div>
+    </div>
+
+    <div class="reveal reveal-delay-1">
+      <div class="about-stats">
+        <div class="stat-box">
+          <div class="stat-box-num">300+</div>
+          <div class="stat-box-label">DSA PROBLEMS SOLVED</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-num">8+</div>
+          <div class="stat-box-label">TECH SKILLS</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-num">4</div>
+          <div class="stat-box-label">PROJECTS BUILT</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-num">'26</div>
+          <div class="stat-box-label">GRADUATING BATCH</div>
+        </div>
+      </div>
+
+      <div style="margin-top:1.5rem; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.4rem;">
+        <div class="edu-label" style="margin-bottom:1rem;">CERTIFICATIONS</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <span class="skill-tag featured">Problem Solving — HackerRank</span>
+          <span class="skill-tag featured">JavaScript Basic — HackerRank</span>
+          <span class="skill-tag featured">SQL Intermediate — HackerRank</span>
+          <span class="skill-tag featured">Python Basic — HackerRank</span>
+          <span class="skill-tag featured">Software Engineer — HackerRank</span>
+          <span class="skill-tag">FinXthon Hackathon</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills" style="background:var(--bg2);">
+  <div class="section-header reveal">
+    <div class="section-num">// 02</div>
+    <h2 class="section-title">Tech Stack</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="skills-container">
+    <div class="skill-group reveal">
+      <div class="skill-group-title">FRONTEND</div>
+      <div class="skill-tags">
+        <span class="skill-tag featured">React.js</span>
+        <span class="skill-tag featured">JavaScript (ES6+)</span>
+        <span class="skill-tag featured">HTML5</span>
+        <span class="skill-tag featured">CSS3</span>
+        <span class="skill-tag">Responsive Design</span>
+        <span class="skill-tag">DOM Manipulation</span>
+        <span class="skill-tag">Dynamic Routing</span>
+        <span class="skill-tag">Form Validation</span>
+      </div>
+    </div>
+
+    <div class="skill-group reveal reveal-delay-1">
+      <div class="skill-group-title">BACKEND</div>
+      <div class="skill-tags">
+        <span class="skill-tag featured">Node.js</span>
+        <span class="skill-tag featured">Express.js</span>
+        <span class="skill-tag featured">REST APIs</span>
+        <span class="skill-tag featured">Socket.IO</span>
+        <span class="skill-tag">JWT Auth</span>
+        <span class="skill-tag">API Integration</span>
+        <span class="skill-tag">Session Management</span>
+      </div>
+    </div>
+
+    <div class="skill-group reveal reveal-delay-2">
+      <div class="skill-group-title">DATABASE</div>
+      <div class="skill-tags">
+        <span class="skill-tag featured">MongoDB</span>
+        <span class="skill-tag featured">SQL</span>
+        <span class="skill-tag">Mongoose ODM</span>
+        <span class="skill-tag">CRUD Operations</span>
+        <span class="skill-tag">Schema Design</span>
+      </div>
+    </div>
+
+    <div class="skill-group reveal reveal-delay-3">
+      <div class="skill-group-title">TOOLS & OTHER</div>
+      <div class="skill-tags">
+        <span class="skill-tag featured">Git & GitHub</span>
+        <span class="skill-tag featured">Linux CLI</span>
+        <span class="skill-tag">VS Code</span>
+        <span class="skill-tag">Postman</span>
+        <span class="skill-tag">C / C++</span>
+        <span class="skill-tag">Python</span>
+        <span class="skill-tag">DSA (300+ solved)</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="section-header reveal">
+    <div class="section-num">// 03</div>
+    <h2 class="section-title">Projects</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="projects-grid">
+
+    <!-- Project 1 -->
+    <div class="project-card reveal">
+      <div class="project-header">
+        <div class="project-num">PROJECT 01 — FEATURED</div>
+        <div class="project-icon">💬</div>
+        <div class="project-title">Real-Time Chat App</div>
+      </div>
+      <p class="project-desc">
+        A full-stack real-time messaging application with low-latency bi-directional communication. Supports user authentication, message persistence, and live typing indicators.
+      </p>
+      <div class="project-tech">
+        <span class="tech-pill">Node.js</span>
+        <span class="tech-pill">Express.js</span>
+        <span class="tech-pill">Socket.IO</span>
+        <span class="tech-pill">MongoDB</span>
+        <span class="tech-pill">JWT Auth</span>
+        <span class="tech-pill">REST API</span>
+      </div>
+      <div class="project-footer">
+        <a href="https://github.com/sumitprajapati272" target="_blank" class="proj-link">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+        <a href="#" class="proj-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Live Demo
+        </a>
+      </div>
+    </div>
+
+    <!-- Project 2 -->
+    <div class="project-card reveal reveal-delay-1">
+      <div class="project-header">
+        <div class="project-num">PROJECT 02</div>
+        <div class="project-icon">🌦️</div>
+        <div class="project-title">Weather Forecast App</div>
+      </div>
+      <p class="project-desc">
+        A responsive weather application that fetches real-time data including temperature, humidity, and wind speed. Built with async JavaScript and third-party API integration.
+      </p>
+      <div class="project-tech">
+        <span class="tech-pill">HTML5</span>
+        <span class="tech-pill">CSS3</span>
+        <span class="tech-pill">JavaScript</span>
+        <span class="tech-pill">Weather API</span>
+        <span class="tech-pill">Async/Await</span>
+        <span class="tech-pill">DOM Manipulation</span>
+      </div>
+      <div class="project-footer">
+        <a href="https://github.com/sumitprajapati272" target="_blank" class="proj-link">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+        <a href="#" class="proj-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Live Demo
+        </a>
+      </div>
+    </div>
+
+    <!-- Project 3 -->
+    <div class="project-card reveal reveal-delay-2">
+      <div class="project-header">
+        <div class="project-num">PROJECT 03</div>
+        <div class="project-icon">🎬</div>
+        <div class="project-title">Netflix UI Clone</div>
+      </div>
+      <p class="project-desc">
+        A pixel-perfect Netflix homepage clone featuring hero banners, scrollable content rows, hover card effects, Top 10 rankings, genre filters, and a fully responsive layout.
+      </p>
+      <div class="project-tech">
+        <span class="tech-pill">HTML5</span>
+        <span class="tech-pill">CSS3</span>
+        <span class="tech-pill">JavaScript</span>
+        <span class="tech-pill">Node.js</span>
+        <span class="tech-pill">Express.js</span>
+        <span class="tech-pill">MongoDB</span>
+        <span class="tech-pill">REST API</span>
+        <span class="tech-pill">JWT</span>
+      </div>
+      <div class="project-footer">
+        <a href="https://github.com/sumitprajapati272" target="_blank" class="proj-link">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+        <a href="#" class="proj-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Live Demo
+        </a>
+      </div>
+    </div>
+
+    <!-- Project 4 — CTA -->
+    <div class="project-card reveal reveal-delay-3" style="border-style:dashed; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:280px; text-align:center; padding:2rem;">
+      <div style="font-size:2rem; margin-bottom:1rem;">🚀</div>
+      <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:700;margin-bottom:8px;">More coming soon</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:1.5rem;">Currently building new projects with React, TypeScript, and cloud deployment. Check my GitHub for latest work.</div>
+      <a href="https://github.com/sumitprajapati272" target="_blank" class="btn-outline" style="font-size:12px; padding:10px 20px;">
+        View GitHub
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" style="background:var(--bg2);">
+  <div class="contact-wrapper">
+    <div class="section-header reveal" style="text-align:center;">
+      <div class="section-num" style="text-align:center;">// 04</div>
+      <h2 class="section-title">Let's Connect</h2>
+      <div class="section-line" style="margin:1rem auto 0;"></div>
+    </div>
+
+    <p class="contact-tagline reveal" style="margin-top:1.5rem;">
+      I'm actively looking for <strong style="color:var(--text)">internship</strong> and 
+      <strong style="color:var(--text)">entry-level opportunities</strong> in full stack and frontend development. 
+      If you have a role, a project, or just want to talk tech — my inbox is always open.
+    </p>
+
+    <!-- EXISTING CONTACT LINKS (UNCHANGED) -->
+    <div class="contact-links reveal">
+      <a href="mailto:sumitprajapati272@gmail.com" class="contact-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+        Email Me
+      </a>
+
+      <a href="https://www.linkedin.com/in/prashant-prajapati-23b8a7258/" target="_blank" class="contact-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/>
+          <circle cx="4" cy="4" r="2"/>
+        </svg>
+        LinkedIn
+      </a>
+
+      <a href="https://github.com/sumitprajapati272" target="_blank" class="contact-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.270 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+        GitHub
+      </a>
+
+      <a href="tel:+919818655768" class="contact-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 0114.92 3.17a2 2 0 012.07 1.98v3.09a2 2 0 01-.9 1.67L14.92 11A16 16 0 0013 13l-1.09 1.09a2 2 0 00-.19 2.38 16 16 0 002.12 2.12 2 2 0 002.38-.19L17.33 17a2 2 0 011.67-.9h3.09a2 2 0 011.91 2.82z"/>
+        </svg>
+        +91 98186 55768
+      </a>
+    </div>
+
+    <!-- 🔥 NEW FORM ADDED (NO UI BREAK) -->
+   <form id="contactForm" class="contact-form reveal"
+      style="margin-top:2.5rem; max-width:500px; margin-left:auto; margin-right:auto;"
+    >
+
+  <input type="text" id="name" placeholder="Your Name" required>
+
+  <input type="email" id="email" placeholder="Your Email" required>
+
+  <textarea id="message" placeholder="Your Message" required></textarea>
+
+  <button type="submit" class="btn-primary">Send Message</button>
+
+</form>
+
+  </div>
+</section>
+<!-- FOOTER -->
+<footer>
+  <div>Designed & built by <span class="green">Prashant Prajapati</span></div>
+  <div style="font-size:10px;">B.Tech CSE '26 · ABES Engineering College · Ghaziabad</div>
+  <div style="font-size:10px; color:var(--green);">Open to opportunities &mdash; 2026</div>
+</footer>
+
+<!--AI chatbot-->
+
+<!-- 💬 Floating Button -->
+<div id="chat-toggle">💬</div>
+
+<!-- 🤖 Chatbox -->
+<div id="chatbox">
+  <div id="chat-header">AI Assistant ❌</div>
+
+  <div id="messages"></div>
+
+  <div id="chat-input">
+    <input id="input" placeholder="Ask about Prashant..." onkeypress="handleKey(event)" />
+    <button onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cursor.style.left=mx+'px'; cursor.style.top=my+'px'; });
+  function animRing() { rx+=(mx-rx)*.12; ry+=(my-ry)*.12; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(animRing); }
+  animRing();
+
+  // Navbar scroll
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+  });
+
+  // Typed text
+  const phrases = ['React interfaces','Node.js backends','REST APIs','full stack apps','MongoDB databases','real-time apps'];
+  let pi=0, ci=0, del=false;
+  const el = document.getElementById('typed-text');
+  function type() {
+    const cur = phrases[pi];
+    el.textContent = del ? cur.slice(0,ci--) : cur.slice(0,ci++);
+    if(!del && ci>cur.length){del=true; setTimeout(type,1200); return;}
+    if(del && ci<0){del=false; pi=(pi+1)%phrases.length; ci=0;}
+    setTimeout(type, del?60:100);
+  }
+  type();
+
+  // Scroll reveal
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, {threshold:0.12});
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+<script>
+const form = document.getElementById("contactForm");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const message = document.getElementById("message").value;
+
+  try {
+    const res = await fetch("http://127.0.0.1:5000/api/contact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ name, email, message })
+    });
+
+    const data = await res.json(); // 🔥 IMPORTANT
+
+    if (res.ok) {
+      alert("Message Sent ✅");
+      form.reset();
+    } else {
+      alert("Failed ❌");
+      console.log(data);
+    }
+
+  } catch (err) {
+    console.error("ERROR:", err);
+    alert("Failed ❌");
+  }
+});
+</script>
+
+<script>
+// 🔥 Toggle chat
+document.getElementById("chat-toggle").onclick = () => {
+  const chat = document.getElementById("chatbox");
+  chat.style.display = chat.style.display === "flex" ? "none" : "flex";
+};
+
+// 🔥 Close from header
+document.getElementById("chat-header").onclick = () => {
+  document.getElementById("chatbox").style.display = "none";
+};
+
+// Enter key
+function handleKey(e) {
+  if (e.key === "Enter") sendMessage();
+}
+
+// Send message
+async function sendMessage() {
+  const input = document.getElementById("input");
+  const messages = document.getElementById("messages");
+
+  const userText = input.value;
+  if (!userText) return;
+
+  messages.innerHTML += `<div class="user-msg">You: ${userText}</div>`;
+  input.value = "";
+
+  const res = await fetch("http://127.0.0.1:5000/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ message: userText }),
+  });
+
+  const data = await res.json();
+
+  messages.innerHTML += `<div class="bot-msg">AI: ${data.reply}</div>`;
+  messages.scrollTop = messages.scrollHeight;
+}
+</script>
+<!-- 🔥 AI CHATBOT END -->
+ </body>
+ </html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — Prashant</title>
+
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #0a0a0a;
+  --bg2: #111111;
+  --green: #00ff88;
+  --green-dim: #00ff8833;
+  --border: #222;
+  --text: #e8e8e8;
+  --muted: #666;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Syne', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* CONTAINER */
+.container {
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+}
+
+/* TITLE */
+.title {
+  font-family: var(--font-display);
+  font-size: 2.8rem;
+  font-weight: 700;
+}
+
+.line {
+  width: 60px;
+  height: 3px;
+  background: var(--green);
+  margin: 10px auto 30px;
+}
+
+/* FORM */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+input, textarea {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 14px;
+  color: var(--text);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 10px var(--green-dim);
+}
+
+textarea {
+  min-height: 120px;
+  resize: none;
+}
+
+/* BUTTON */
+button {
+  background: var(--green);
+  color: black;
+  padding: 14px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,255,136,0.2);
+}
+
+/* BACK BUTTON */
+.back {
+  margin-top: 20px;
+  display: inline-block;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--green);
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1 class="title">Let's Connect</h1>
+  <div class="line"></div>
+
+  <form id="contactForm">
+    <input type="text" id="name" placeholder="Your Name" required>
+    <input type="email" id="email" placeholder="Your Email" required>
+    <textarea id="message" placeholder="Your Message" required></textarea>
+
+    <button type="submit">Send Message</button>
+  </form>
+
+  <a href="index.html" class="back">← Back to Portfolio</a>
+</div>
+
+<script>
+const form = document.getElementById("contactForm");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const message = document.getElementById("message").value;
+
+  try {
+    await fetch("http://localhost:5000/api/contact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ name, email, message })
+    });
+
+    alert("Message Sent ✅");
+    form.reset();
+
+  } catch (err) {
+    alert("Error ❌");
+  }
+});
+</script>
+
+</body>
+</html>
