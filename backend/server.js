@@ -10,26 +10,34 @@ const chatRoutes = require("./routes/chatRoutes");
 
 const app = express();
 
-// DB connect
+// ✅ DB connect
 connectDB();
 
-// middleware
+// ✅ middleware
 app.use(cors({
   origin: "*"
 }));
 app.use(express.json());
 
-// routes
+// ✅ routes
 app.use("/api", contactRoutes);
 app.use("/api", visitorRoutes);
 app.use("/api", chatRoutes);
 
-// test route
+// ✅ health check route (important for Render)
 app.get("/", (req, res) => {
-  res.send("Backend running 🚀");
+  res.status(200).send("Backend running 🚀");
 });
 
-// ✅ FIXED PORT
+// ✅ error handler (VERY IMPORTANT)
+app.use((err, req, res, next) => {
+  console.error("Error:", err.message);
+  res.status(500).json({ error: "Something went wrong" });
+});
+
+// ✅ FIXED PORT (Render compatible)
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
