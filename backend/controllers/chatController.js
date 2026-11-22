@@ -55,11 +55,13 @@ INSTRUCTIONS:
 // Gemini configuration (all values come from environment variables)
 // ---------------------------------------------------------------------------
 const GEMINI_BASE_URL = (process.env.GEMINI_API_BASE_URL || "https://generativelanguage.googleapis.com/v1beta").replace(/\/$/, "");
-const REQUEST_TIMEOUT_MS = 25000;
+const REQUEST_TIMEOUT_MS = Number(process.env.CHAT_TIMEOUT_MS) || 25000; // per Gemini call
+const TOTAL_BUDGET_MS = Number(process.env.CHAT_TOTAL_BUDGET_MS) || 52000; // whole chat request (browser waits 60s)
 const RETRY_DELAY_MS = 700;
 
 // Used only if GEMINI_MODEL is missing or that model is not available for your key.
-const DEFAULT_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-2.5-flash"];
+// Flash-Lite is listed first because it is the fastest and works best on free quotas.
+const DEFAULT_MODELS = ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash"];
 
 // Render dashboards sometimes keep stray spaces, quotes or line breaks when a value is pasted.
 const cleanEnv = (value) => (value || "").trim().replace(/^["']|["']$/g, "").trim();
@@ -174,6 +176,35 @@ function sendError(res, info, extra = {}) {
   return res.status(info.httpStatus).json(payload);
 }
 
+
+// Calls one model. Gemini 3 models "think" before answering, which can take many seconds for a
+// simple chat message, so we ask for the lowest thinking level. If a model rejects that setting,
+// we repeat the call once without it.
+async function requestModel(model, requestBody, apiKey, timeoutMs) {
+  const path = `models/${encodeURIComponent(model)}:generateContent`;
+  const wantsThinkingLevel = /^gemini-3/.test(model);
+  const withThinking = {
+    ...requestBody,
+    generationConfig: { ...requestBody.generationConfig, thinkingConfig: { thinkingLevel: "low" } }
+  };
+  const firstBody = wantsThinkingLevel ? withThinking : requestBody;
+
+  let result = await callGemini(path, { method: "POST", body: firstBody, apiKey, timeoutMs });
+
+  // One quick retry for temporary network problems (not for timeouts, which are already long).
+  if (result.networkError && !result.timedOut) {
+    console.warn(`Chat: network error (${result.code}) calling ${model}, retrying once.`);
+    await sleep(RETRY_DELAY_MS);
+    result = await callGemini(path, { method: "POST", body: firstBody, apiKey, timeoutMs });
+  }
+
+  if (wantsThinkingLevel && result.ok === false && result.status === 400 && /thinking/i.test(result.data?.error?.message || "")) {
+    console.warn(`Chat: ${model} rejected thinkingLevel, retrying without it.`);
+    result = await callGemini(path, { method: "POST", body: requestBody, apiKey, timeoutMs });
+  }
+  return result;
+}
+
 // ---------------------------------------------------------------------------
 // POST /api/chat
 // ---------------------------------------------------------------------------
@@ -221,21 +252,20 @@ const chatWithAI = async (req, res) => {
     };
 
     let lastFailure = null;
+    const startedAt = Date.now();
+    const models = getModelList();
 
-    for (const model of getModelList()) {
-      let result = await callGemini(`models/${encodeURIComponent(model)}:generateContent`, { method: "POST", body: requestBody, apiKey });
-
-      // One quick retry for temporary network problems (not for timeouts, which are already long).
-      if (result.networkError && !result.timedOut) {
-        console.warn(`Chat: network error (${result.code}) calling ${model}, retrying once.`);
-        await sleep(RETRY_DELAY_MS);
-        result = await callGemini(`models/${encodeURIComponent(model)}:generateContent`, { method: "POST", body: requestBody, apiKey });
-      }
+    for (const model of models) {
+      const remaining = TOTAL_BUDGET_MS - (Date.now() - startedAt);
+      if (remaining < 4000) break; // out of time, report the last failure
+      const result = await requestModel(model, requestBody, apiKey, Math.min(REQUEST_TIMEOUT_MS, remaining));
 
       if (result.networkError) {
         const info = classifyNetworkError(result);
         console.error("Chat Controller Error: network failure", { model, code: result.code, detail: result.detail });
-        return sendError(res, info, { debug: { model, code: result.code, detail: result.detail } });
+        lastFailure = { info, debug: { model, code: result.code, detail: result.detail } };
+        if (result.timedOut) continue; // this model was too slow: try the next (faster) one
+        return sendError(res, info, lastFailure);
       }
 
       if (!result.ok) {
@@ -273,12 +303,12 @@ const chatWithAI = async (req, res) => {
         }, { debug: { model, finishReason: reason } });
       }
 
-      if (model !== getModelList()[0]) console.warn(`Chat: answered using fallback model ${model}. Update GEMINI_MODEL in Render.`);
+      if (model !== models[0]) console.warn(`Chat: answered using fallback model ${model}. Update GEMINI_MODEL in Render.`);
       return res.status(200).json({ reply });
     }
 
-    // Every model failed with a "try another model" error.
-    return sendError(res, lastFailure.info, lastFailure);
+    // Every model failed (or time ran out).
+    return sendError(res, lastFailure ? lastFailure.info : { code: "TIMEOUT", httpStatus: 504, reply: "The AI service took too long to answer. Please try again." }, lastFailure || {});
   } catch (error) {
     console.error("Chat Controller Error:", error.message, error.cause ? `(cause: ${error.cause.code || error.cause.message})` : "");
     return res.status(500).json({ reply: "Something went wrong on the server. Please try again later.", error: "INTERNAL_ERROR" });
