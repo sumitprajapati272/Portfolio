@@ -1004,29 +1004,83 @@ function handleKey(e) {
   if (e.key === "Enter") sendMessage();
 }
 
+// ---------------------------------------------------------------------------
+// AI chatbot
+// The page is served by the same Express server as the API, so a relative URL
+// always reaches the right backend. To use a different backend, set
+// window.CHAT_API_URL (the full https URL ending in /api/chat) in an
+// earlier script block, before this one.
+// ---------------------------------------------------------------------------
+const CHAT_API_URL = window.CHAT_API_URL || "/api/chat";
+const CHAT_TIMEOUT_MS = 60000; // Render free instances can take ~50s to wake up
+const chatHistory = [];
+let chatBusy = false;
+
+// Messages are added with textContent (never innerHTML) so visitor text and AI text cannot inject HTML.
+function addChatMessage(className, label, text) {
+  const messages = document.getElementById("messages");
+  const bubble = document.createElement("div");
+  bubble.className = className;
+  bubble.style.whiteSpace = "pre-wrap";
+  bubble.textContent = `${label}: ${text}`;
+  messages.appendChild(bubble);
+  messages.scrollTop = messages.scrollHeight;
+  return bubble;
+}
+
 // Send message
 async function sendMessage() {
   const input = document.getElementById("input");
-  const messages = document.getElementById("messages");
+  const userText = input.value.trim();
+  if (!userText || chatBusy) return;
 
-  const userText = input.value;
-  if (!userText) return;
-
-  messages.innerHTML += `<div class="user-msg">You: ${userText}</div>`;
+  chatBusy = true;
   input.value = "";
+  addChatMessage("user-msg", "You", userText);
+  const pending = addChatMessage("bot-msg", "AI", "Thinking…");
 
-  const res = await fetch("https://portfolio-backend-df0y.onrender.com/api/chat", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ message: userText }),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CHAT_TIMEOUT_MS);
 
-  const data = await res.json();
+  try {
+    const res = await fetch(CHAT_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: userText, history: chatHistory.slice(-10) }),
+      signal: controller.signal,
+    });
 
-  messages.innerHTML += `<div class="bot-msg">AI: ${data.reply}</div>`;
-  messages.scrollTop = messages.scrollHeight;
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (parseError) {
+      data = null; // server did not return JSON (for example a 502 page from the host)
+    }
+
+    if (res.ok && data && data.reply) {
+      pending.textContent = `AI: ${data.reply}`;
+      chatHistory.push({ role: "user", text: userText }, { role: "model", text: data.reply });
+    } else if (data && data.reply) {
+      // Meaningful error message from the backend
+      pending.textContent = `AI: ${data.reply}`;
+    } else if (res.status === 404) {
+      pending.textContent = "AI: The chat service was not found on the server (HTTP 404).";
+    } else if (res.status >= 500) {
+      pending.textContent = `AI: The server is not responding properly (HTTP ${res.status}). If it was idle, wait a few seconds for it to wake up and try again.`;
+    } else {
+      pending.textContent = `AI: Something went wrong (HTTP ${res.status}). Please try again.`;
+    }
+  } catch (error) {
+    console.error("Chat request failed:", error);
+    pending.textContent =
+      error.name === "AbortError"
+        ? "AI: The server took too long to respond. It may be waking up - please try again in a moment."
+        : "AI: Could not reach the server. Please check your internet connection and try again.";
+  } finally {
+    clearTimeout(timer);
+    chatBusy = false;
+    document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+  }
 }
 </script>
 <!-- 🔥 AI CHATBOT END -->

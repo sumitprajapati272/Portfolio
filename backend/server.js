@@ -1,3 +1,6 @@
+// Prefer IPv4 when resolving hosts. Some hosting networks have broken IPv6 routes,
+// which makes outbound fetch() calls (e.g. to Google) fail with "fetch failed".
+require("dns").setDefaultResultOrder("ipv4first");
 
 const express = require("express");
 const cors = require("cors");
@@ -13,37 +16,53 @@ const chatRoutes = require("./routes/chatRoutes");
 
 const app = express();
 
-app.use(cors({ origin: "*" }));
+// Middleware
+app.use(cors({
+  origin: "*"
+}));
 app.use(express.json());
 
+// Routes
 app.use("/api", contactRoutes);
 app.use("/api", visitorRoutes);
 app.use("/api", chatRoutes);
 
+// Health check
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
 });
 
+// Frontend
 app.use(express.static(path.join(__dirname, "..", "frontend")));
-
-const PORT = process.env.PORT || 5000;
-
-// Start server first
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-// Connect databases independently
-connectDB()
-  .then(() => console.log("MongoDB connected successfully!"))
-  .catch((error) => console.error("MongoDB connection failed:", error.message));
-
-pool.query("SELECT NOW()")
-  .then(() => console.log("PostgreSQL connected successfully!"))
-  .catch((error) => console.error("PostgreSQL connection failed:", error.message));
 
 // Error handler
 app.use((err, req, res, next) => {
   console.error("Error:", err.message);
   res.status(500).json({ error: "Something went wrong" });
 });
+
+const PORT = process.env.PORT || 5000;
+
+// Connect both databases
+const startServer = async () => {
+  try {
+    // MongoDB connection
+    await connectDB();
+    console.log("MongoDB connected successfully!");
+
+    // PostgreSQL connection test
+    await pool.query("SELECT NOW()");
+    console.log("PostgreSQL connected successfully!");
+
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running at: http://localhost:${PORT}`);
+    });
+
+  } catch (error) {
+    console.error("Database connection failed:", error.message);
+    process.exit(1);
+  }
+};
+
+startServer();
