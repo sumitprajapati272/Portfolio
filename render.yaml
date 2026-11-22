@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: portfolio
+    runtime: node
+    buildCommand: npm ci --prefix backend
+    startCommand: node backend/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false

@@ -137,13 +137,17 @@ form.addEventListener("submit", async (e) => {
   const message = document.getElementById("message").value;
 
   try {
-    await fetch("http://localhost:5000/api/contact", {
+    const res = await fetch("/api/contact", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ name, email, message })
     });
+
+    if (!res.ok) {
+      throw new Error("Message could not be sent");
+    }
 
     alert("Message Sent ✅");
     form.reset();
